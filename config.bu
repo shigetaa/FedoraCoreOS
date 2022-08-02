@@ -1,0 +1,61 @@
+variant: fcos
+version: 1.4.0
+passwd:
+  users:
+    - name: core
+      groups:
+        - docker
+      password_hash: $y$j9T$VpN.6h9/DB/sIwiM3tj2W/$Ifv3gW23jPphG1JnYl/yzURqvg0NO4YOttcoRjV/fGD
+storage:
+  links:
+    - path: /etc/localtime
+      target: ../usr/share/zoneinfo/Japan
+  files:
+    - path: /etc/hostname
+      mode: 0644
+      contents:
+        inline: fcos1
+    - path: /etc/NetworkManager/system-connections/ens33.nmconnection
+      mode: 0600
+      contents:
+        inline: |
+          [connection]
+          id=ens33
+          type=ethernet
+          interface-name=ens33
+          [ipv4]
+          address1=192.168.220.77/24,192.168.220.1
+          dns=192.168.220.251
+          dns-search=
+          may-fail=false
+          method=manual
+    - path: /etc/ssh/sshd_config.d/20-enable-passwords.conf
+      mode: 0644
+      contents:
+        inline: |
+          # Fedora CoreOS disables SSH password login by default.
+          # Enable it.
+          # This file must sort before 40-disable-passwords.conf.
+          PasswordAuthentication yes
+systemd:
+  units:
+    - name: docker.service
+      enabled: true
+    - name: install-docker-compose.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Install docker-compose on first boot
+        DefaultDependencies=no
+        Conflicts=shutdown.target
+        After=network-online.target
+        Before=shutdown.target
+        ConditionFirstBoot=yes
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=no
+        ExecStart=/usr/bin/rpm-ostree install -r docker-compose
+
+        [Install]
+        WantedBy=network-online.target

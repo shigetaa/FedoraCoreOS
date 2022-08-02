@@ -1,0 +1,63 @@
+{
+  "ignition": {
+    "version": "3.3.0"
+  },
+  "passwd": {
+    "users": [
+      {
+        "groups": [
+          "docker"
+        ],
+        "name": "core",
+        "passwordHash": "$y$j9T$VpN.6h9/DB/sIwiM3tj2W/$Ifv3gW23jPphG1JnYl/yzURqvg0NO4YOttcoRjV/fGD"
+      }
+    ]
+  },
+  "storage": {
+    "files": [
+      {
+        "path": "/etc/hostname",
+        "contents": {
+          "compression": "",
+          "source": "data:,fcos1"
+        },
+        "mode": 420
+      },
+      {
+        "path": "/etc/NetworkManager/system-connections/ens33.nmconnection",
+        "contents": {
+          "compression": "gzip",
+          "source": "data:;base64,H4sIAAAAAAAC/1TKQQ6CMBAF0P2cRdAWFF30JITFpP2EJnQgndGE25sYF7p9eWPcRBAtbzJRTgGiXUd27AiwBVVglMVQZ45ohAu+Zcz7q5+IU6pQdcE9fOtu99b7SzsMZ9+ffsVREv07/vqxRsE1LoEKH83MeQ0zrwoqsGVLobA8eaV3AAAA///vjmYdpgAAAA=="
+        },
+        "mode": 384
+      },
+      {
+        "path": "/etc/ssh/sshd_config.d/20-enable-passwords.conf",
+        "contents": {
+          "compression": "",
+          "source": "data:,%23%20Fedora%20CoreOS%20disables%20SSH%20password%20login%20by%20default.%0A%23%20Enable%20it.%0A%23%20This%20file%20must%20sort%20before%2040-disable-passwords.conf.%0APasswordAuthentication%20yes%0A"
+        },
+        "mode": 420
+      }
+    ],
+    "links": [
+      {
+        "path": "/etc/localtime",
+        "target": "../usr/share/zoneinfo/Japan"
+      }
+    ]
+  },
+  "systemd": {
+    "units": [
+      {
+        "enabled": true,
+        "name": "docker.service"
+      },
+      {
+        "contents": "[Unit]\nDescription=Install docker-compose on first boot\nDefaultDependencies=no\nConflicts=shutdown.target\nAfter=network-online.target\nBefore=shutdown.target\nConditionFirstBoot=yes\n\n[Service]\nType=oneshot\nRemainAfterExit=no\nExecStart=/usr/bin/rpm-ostree install -r docker-compose\n\n[Install]\nWantedBy=network-online.target",
+        "enabled": true,
+        "name": "install-docker-compose.service"
+      }
+    ]
+  }
+}
