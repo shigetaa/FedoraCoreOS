@@ -139,3 +139,97 @@ sudo coreos-installer install /dev/sda --ignition-url http://xxx/xxxx.ign  --ins
 ```
 
 ## Visual Studio Code の設定
+VSCode Remote Containers で開発環境を使用する場合は以下の2つをインストールが必要です。
+
+- Visual Studio Code
+- Docker Decktop for Windows or Mac
+
+インストールを済ませると、`Visual Studio Code` を起動して、拡張機能の `Remote Development` をインストールします。
+
+### SSH 接続設定
+SSH接続する際には、`公開鍵`と`秘密鍵`があるとパスワード無しで接続できますので
+まずは、公開鍵と秘密鍵を作成していきます。
+
+リモート ホストに SSH キー ベースの認証を設定するには
+最初にローカルで鍵ペアを作成し、公開鍵をホストにコピーします。
+
+ローカルマシンに SSH キーが既にあるかどうかを確認します。
+macOS / Linux では `.ssh`にあり。
+Windows ではユーザー プロファイル フォルダーのディレクトリにあります (例: C:\Users\your-user\.ssh\id_ed25519.pub)
+
+キーがない場合は、ローカルターミナル/PowerShell で次のコマンドを実行して、SSH キー ペアを生成します。
+```bash
+ssh-keygen -t rsa
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/core/.ssh/id_rsa): 
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /home/core/.ssh/id_rsa.
+Your public key has been saved in /home/core/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:DW0pky/X/Bn625RfDt3QDXWiS2zSQEebTD0noaQW4QM core@localhost
+The key's randomart image is:
++---[RSA 2048]----+
+|        E.=o=.o.o|
+|         = % =+oo|
+|        = X @ .+ |
+|         O B . o.|
+|        S + + o o|
+|         o   o =o|
+|            . +.=|
+|             . =o|
+|              o.+|
++----[SHA256]-----+
+```
+
+ローカル接続の承認する
+ローカルターミナルウィンドウで次のコマンドのいずれかを実行し、
+必要に応じてユーザー名とホスト名を置き換えて、ローカル公開キー`id_rsa.pub`を SSH ホストにコピーします。
+```bash
+$USER_AT_HOST="core@192.168.220.77"
+$PUBKEYPATH="$HOME\.ssh\id_rsa.pub"
+
+$pubKey=(Get-Content "$PUBKEYPATH" | Out-String); ssh "$USER_AT_HOST" "mkdir -p ~/.ssh && chmod 700 ~/.ssh && echo '${pubKey}' >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+```
+以下の様に表示されるので
+yes と入力して、パスワードを入力してください。
+```bash
+The authenticity of host '192.168.220.77 (192.168.220.77)' can't be established.
+ECDSA key fingerprint is SHA256:xxxxxxxxxxxxxxxxxxxxxxxxxxx
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '192.168.220.77' (ECDSA) to the list of known hosts.
+core@192.168.220.77's password:
+```
+ローカルターミナルで以下の様に入力してパスワード無しに接続出来たら設定完了です。
+```bash
+ssh $USER_AT_HOST
+```
+```bash
+Fedora CoreOS 36.20220716.3.1
+Tracker: https://github.com/coreos/fedora-coreos-tracker
+Discuss: https://discussion.fedoraproject.org/tag/coreos
+
+Last login: Tue Aug  2 16:22:34 2022 from 192.168.220.13
+[core@fcos1 ~]$
+```
+### VSCode SSH設定
+左下`><`をクリックして、`ホストに接続する`をクリックして`新規SSHホストを追加する`を実行して
+`~/.ssh/config`に設定を保存する。
+
+### VSCode 使用方法
+左下`><`をクリックして、`ホストに接続する`をクリックして 上記で登録したホストを選択する。
+別ウィンドウが表示されリモートの VSCode Server 上で　`Remote Containers` の拡張機能が利用できる。
+
+#### Remote Containers 機能
+- Open Folder in Container...
+- Clone Repository in Container Volume..
+- Attach to Running Container...
+- Add Development Container Configuration Files...
+
+
+### リモートホストのDocker Container 起動
+起動例
+```bash
+docker run --secrity-opt label=disable --rm -p 8080:80 --name php8 -v $PWD:/var/www/html php:8.0-apache
+```
+`--secrity-opt label=disable` Option を使用しないと ボリュームをマウント時パーミッションエラーでボリュームを操作出来ない。
