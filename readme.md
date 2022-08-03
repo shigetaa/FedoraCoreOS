@@ -233,3 +233,81 @@ Last login: Tue Aug  2 16:22:34 2022 from 192.168.220.13
 docker run --secrity-opt label=disable --rm -p 8080:80 --name php8 -v $PWD:/var/www/html php:8.0-apache
 ```
 `--secrity-opt label=disable` Option を使用しないと ボリュームをマウント時パーミッションエラーでボリュームを操作出来ない。
+
+起動したコンテナに対して、Visual Studio Code で操作するには
+Remote Containers の機能
+`Attach to Running Container...` にて操作する事が可能になります。
+
+### コードにてコンテナ構成管理
+コードにてコンテナの構成、起動、等を管理する為
+最小構成で以下の様なディレクトリ構成ファイルになります。
+<pre>
+.
+├── .devcontainer
+│   ├── devcontainer.json
+│   └── docker-compose.yml
+└── public
+    └── index.html
+</pre>
+
+#### .devcontainer/devcontainer.json
+Visual Studio Code のコンテナ開発の設定を行います。
+```json
+{
+	"name": "PHP",
+	"dockerComposeFile": [
+		"docker-compose.yml"
+	],
+	"service": "php",
+	"workspaceFolder": "/var/www/html",
+	"extensions": [
+		"felixfbecker.php-debug",
+		"felixfbecker.php-intellisense"
+	]
+}
+```
+`service` に、接続するサービス名を指定します。
+`dockerComposeFile` に、接続コンテナの設定ファイルを指定します。
+`workspaceFolder` に、接続コンテナの 作業フォルダを指定します。
+`extensions` に、接続コンテナにインストールする拡張機能を指定します。
+
+
+#### .devcontainer/docker-compose.yml
+開発に利用するコンテナを設定をおこないます。
+```yml
+version: '3'
+
+services:
+  php:
+    image: php:8.0-apache
+    ports:
+      - '8080:80'
+    volumes:
+      - ../public:/var/www/html:Z
+
+```
+`services` は、作成するコンテナを定義します。
+`php` は、コンテナ名としてphp（名前自由）を定義してます。
+`image` は、コンテナイメージ
+`ports` は、公開ポート
+`volumes` は、ボリュームを指定します。ここでは、行末に `:Z` を記述してますがSELinuxの兼ね合いで記述してます。
+
+#### public/index.html
+公開するファイルなど
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>test</title>
+</head>
+<body>
+	<h1>test</h1>
+</body>
+</html>
+```
+
+#### コンテナに接続する
+左下`><`をクリックして、`Reopen in Container`をクリックすると、コンテナを生成して、コンテナに接続して `workspaceFolder` にて指定したフォルダを Visual Studio Code 上で操作出来ます。

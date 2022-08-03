@@ -1,0 +1,12 @@
+{
+	"name": "PHP",
+	"dockerComposeFile": [
+		"docker-compose.yml"
+	],
+	"service": "php",
+	"workspaceFolder": "/var/www/html",
+	"extensions": [
+		"felixfbecker.php-debug",
+		"felixfbecker.php-intellisense"
+	]
+}
